@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Система управління бібліотекою</title>
+    <link rel="stylesheet" href="libs/bootstrap.css">
+
+
+    <style>
+        .invalid-feedback {
+            display: none;
+        }
+        .is-invalid ~ .invalid-feedback {
+            display: block;
+        }
+
+        .modal {
+            display: flex;
+            align-items: center; /* Вертикальне вирівнювання */
+            justify-content: center; /* Горизонтальне вирівнювання */
+            align-content: center;
+            min-height: 100vh; /* Мінімальна висота на всю висоту екрана */
+            overflow: hidden; /* Приховати переповнені елементи */
+
+            background-color: rgba(0, 0, 0, 0.8); /* Білий фон з 80% непрозорістю */
+        }
+
+        .modal-dialog {
+            max-width: 500px; /* Максимальна ширина для модального вікна */
+            margin: auto; /* Прибираємо відступи */
+        }
+
+        .modal-header {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+        }
+
+        .book {
+            padding: 10px 0;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
+
+        .border-bottom {
+            border-bottom: 1px solid #ccc;
+        }
+
+        #usersContainer, #booksContainer, #searchBooksDiv {
+            padding: 20px;
+        }
+
+        #searchButton {
+            margin-top: 40px;
+            width: 150px;
+        }
+    </style>
+</head>
+<body>
+<!--Past your markup here-->
+<div class="container mt-5">
+    <!-- Додати Книгу -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5 class="card-title">Додати Книгу</h5>
+            <form id="bookForm" novalidate>
+                <div class="mb-3">
+                    <label for="bookName" class="form-label">Назва книги</label>
+                    <input type="text" class="form-control" id="bookName" placeholder="Введіть назву книги" required>
+                    <div class="invalid-feedback">Це поле є обов'язковим</div>
+                </div>
+                <div class="mb-3">
+                    <label for="author" class="form-label">Автор</label>
+                    <input type="text" class="form-control" id="author" placeholder="Введіть автора" required>
+                    <div class="invalid-feedback">Це поле є обов'язковим</div>
+                </div>
+                <div class="mb-3">
+                    <label for="year" class="form-label">Рік видання</label>
+                    <input type="number" class="form-control" id="year" placeholder="Введіть рік видання" required>
+                    <div class="invalid-feedback">Це поле є обов'язковим</div>
+                </div>
+                <button type="submit" class="btn btn-success">Додати Книгу</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Додати Користувача -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5 class="card-title">Додати Користувача</h5>
+            <form id="userForm" novalidate>
+                <div class="mb-3">
+                    <label for="userName" class="form-label">Ім'я</label>
+                    <input type="text" class="form-control" id="userName" placeholder="Введіть ім'я" required>
+                    <div class="invalid-feedback">Це поле є обов'язковим</div>
+                </div>
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="email" placeholder="Введіть email" required>
+                    <div class="invalid-feedback">It is required field</div>
+                </div>
+                <button type="submit" class="btn btn-success">Додати Користувача</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Search for Books -->
+    <div class="card mb-3" id="searchBooksDiv">
+        <label for="searchInput" class="form-label">Пошук Книг</label>
+        <input type="text" class="form-control" id="searchInput" placeholder="Введіть назву або автора" />
+        <button class="btn btn-primary mt-2" id="searchButton">Шукати</button>
+    </div>
+
+    <!-- Список Книг -->
+    <div class="card mb-3" id="booksContainer">
+        <h5 class="card-title">Список Книг</h5>
+        <div id="card_body_for_books">
+            <!-- Сюди будуть додаватися книги через JavaScript -->
+        </div>
+    </div>
+
+    <!-- Список Користувачів -->
+    <div class="card mb-3" id="usersContainer">
+        <h5 class="card-title">Список Користувачів</h5>
+        <div id="card_body_for_users">
+            <!-- List of users will go here -->
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabel"><b>Введіть ID користувача для позичення книги:</b></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <input type="text" class="form-control" id="userId" placeholder="Наприклад: USER12345">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="closeModalButton">Скасувати</button>
+                <button type="button" class="btn btn-primary" id="borrowButton">Позичити</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for borrowing -->
+<div class="modal fade" id="borrowInfoModal" tabindex="-1" role="dialog" aria-labelledby="infoModalLabel" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="returnModalLabel"><b>Інформація:</b></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="borrowModalInfoMainText">
+                Це інформаційне вікно, яке містить важливу інформацію для користувача.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="borrowInfoModalCloseButton">Закрити</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Function to validate form fields
+    (function () {
+        'use strict'
+        // Fetch all the forms we want to apply custom Bootstrap validation styles to
+        let forms = document.querySelectorAll('form')
+
+        // Loop over them and prevent submission if fields are invalid
+        Array.prototype.slice.call(forms).forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault()
+                    event.stopPropagation()
+                }
+
+                form.classList.add('was-validated')
+            }, false)
+        })
+    })()
+</script>
+
+<script src="dist/bundle.js"></script>
+</body>
+</html>
